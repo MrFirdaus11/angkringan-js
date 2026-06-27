@@ -13,8 +13,13 @@ export async function GET(request: NextRequest) {
       tanggal = new Date().toISOString().split('T')[0]
     }
 
-    const startDate = new Date(tanggal + 'T00:00:00')
-    const endDate = new Date(tanggal + 'T23:59:59')
+    const [y, m, d] = tanggal.split('-').map(Number)
+    const tzOffset = parseInt(searchParams.get('tz') || '0')
+
+    const startDate = new Date(Date.UTC(y, m - 1, d, 0, 0, 0))
+    startDate.setUTCMinutes(startDate.getUTCMinutes() + tzOffset)
+
+    const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000)
 
     const [revenueResult, totalOrdersResult, pendingOrdersResult, pesanan] =
       await Promise.all([

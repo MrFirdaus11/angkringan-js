@@ -49,7 +49,7 @@ export default function DashboardPage() {
 
     async function load() {
       try {
-        const res = await fetch('/api/dashboard?tanggal=' + date)
+        const res = await fetch('/api/dashboard?tanggal=' + date + '&tz=' + new Date().getTimezoneOffset())
         if (res.status === 401) { router.push('/login'); return }
         const d = await res.json()
         if (!cancelled) setData(d)
@@ -68,7 +68,7 @@ export default function DashboardPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch('/api/dashboard?tanggal=' + date)
+      const res = await fetch('/api/dashboard?tanggal=' + date + '&tz=' + new Date().getTimezoneOffset())
       if (res.status === 401) { router.push('/login'); return }
       const d = await res.json()
       setData(d)
