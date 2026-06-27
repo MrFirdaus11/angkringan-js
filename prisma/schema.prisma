@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(50)
+  password  String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model Menu {
+  id        Int           @id @default(autoincrement())
+  nama      String        @db.VarChar(100)
+  kategori  String        @db.VarChar(20)
+  harga     Int
+  foto      String?       @db.VarChar(255)
+  createdAt DateTime      @default(now()) @map("created_at")
+  detail    DetailPesanan[]
+
+  @@map("menu")
+}
+
+model Pesanan {
+  id          Int             @id @default(autoincrement())
+  namaPemesan String          @map("nama_pemesan") @db.VarChar(100)
+  totalHarga  Int             @default(0) @map("total_harga")
+  statusBayar Int             @default(0) @map("status_bayar")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  detail      DetailPesanan[]
+
+  @@map("pesanan")
+}
+
+model DetailPesanan {
+  id         Int     @id @default(autoincrement())
+  pesananId  Int     @map("pesanan_id")
+  menuId     Int     @map("menu_id")
+  qty        Int
+  subtotal   Int
+  pesanan    Pesanan @relation(fields: [pesananId], references: [id], onDelete: Cascade)
+  menu       Menu    @relation(fields: [menuId], references: [id])
+
+  @@map("detail_pesanan")
+}
