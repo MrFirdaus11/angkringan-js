@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const adminRoutes = ['/dashboard', '/menu', '/api/order', '/api/menu/delete', '/api/dashboard', '/api/upload']
+const adminRoutes = ['/dashboard', '/menu', '/api/menu/delete', '/api/order/pay', '/api/order/delete', '/api/dashboard', '/api/upload']
 
 export function proxy(request: NextRequest) {
   const { pathname } = new URL(request.url)

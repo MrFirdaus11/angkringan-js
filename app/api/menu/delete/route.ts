@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAuth } from '@/lib/auth'
 import { unlink } from 'fs/promises'
 import path from 'path'
 
 export async function POST(request: NextRequest) {
   try {
+    await requireAuth()
+
     const { id } = await request.json()
 
     if (!id) {
@@ -33,7 +36,10 @@ export async function POST(request: NextRequest) {
     await prisma.menu.delete({ where: { id } })
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.message === 'Unauthorized') {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
     return NextResponse.json(
       { success: false, error: 'Gagal menghapus menu' },
       { status: 500 }

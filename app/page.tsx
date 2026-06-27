@@ -59,7 +59,9 @@ export default function CustomerPage() {
       if (!item) return prev
       const newQty = item.qty + delta
       if (newQty <= 0) {
-        const { [id]: _, ...rest } = prev
+        const rest = Object.fromEntries(
+          Object.entries(prev).filter(([k]) => Number(k) !== id)
+        ) as Record<number, CartItem>
         if (Object.keys(rest).length === 0) setCartOpen(false)
         return rest
       }

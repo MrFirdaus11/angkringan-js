@@ -1,13 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export default function QRPage() {
-  const [url, setUrl] = useState('')
-
-  useEffect(() => {
-    setUrl(window.location.origin + '/')
-  }, [])
+  const [url] = useState(() =>
+    typeof window !== 'undefined' ? window.location.origin + '/' : ''
+  )
 
   return (
     <body className="qr-page" style={{ background: 'var(--bg)' }}>

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAuth } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const kategori = searchParams.get('kategori')
   const all = searchParams.get('all')
 
-  let where: Record<string, unknown> = {}
+  const where: Record<string, unknown> = {}
   if (kategori && ['makanan', 'minuman'].includes(kategori)) {
     where.kategori = kategori
   }
@@ -21,6 +22,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await requireAuth()
+
     const { nama, kategori, harga, foto } = await request.json()
 
     if (!nama || !kategori || !harga) {
@@ -32,7 +35,10 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.message === 'Unauthorized') {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
     return NextResponse.json({ success: false, error: 'Gagal menambah menu' }, { status: 500 })
   }
 }

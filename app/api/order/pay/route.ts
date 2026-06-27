@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAuth } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
+    await requireAuth()
+
     const { id } = await request.json()
 
     if (!id) {
@@ -26,7 +29,10 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.message === 'Unauthorized') {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
     return NextResponse.json(
       { success: false, error: 'Gagal mengubah status' },
       { status: 500 }

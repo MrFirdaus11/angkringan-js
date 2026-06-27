@@ -43,15 +43,13 @@ export default function MenuPage() {
     setSaving(true)
     setSuccess('')
 
-    let foto: string | null = null
+      let foto: string | null = null
     if (file) {
       const ext = file.name.split('.').pop()?.toLowerCase()
       if (['jpg', 'jpeg', 'png', 'webp'].includes(ext || '')) {
         if (file.type.startsWith('image/')) {
-          const filename = crypto.randomUUID() + '.' + ext
           const formData = new FormData()
           formData.append('file', file)
-          formData.append('filename', filename)
           const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
           const uploadData = await uploadRes.json()
           if (uploadData.filename) foto = uploadData.filename

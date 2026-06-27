@@ -34,10 +34,6 @@ export async function requireAuth(): Promise<IronSession<SessionData>> {
   return session
 }
 
-export function csrfToken(): string {
-  return crypto.randomUUID()
-}
-
 export function formatRupiah(angka: number): string {
   return 'Rp ' + angka.toLocaleString('id-ID')
 }

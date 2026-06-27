@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
 const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
@@ -40,9 +40,31 @@ export default function DashboardPage() {
   const router = useRouter()
   const [data, setData] = useState<DashboardData | null>(null)
   const [date, setDate] = useState(todayStr)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [search, setSearch] = useState('')
 
   const isToday = date === todayStr()
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      try {
+        const res = await fetch('/api/dashboard?tanggal=' + date)
+        if (res.status === 401) { router.push('/login'); return }
+        const d = await res.json()
+        if (!cancelled) setData(d)
+      } catch {}
+    }
+
+    load()
+
+    if (isToday) {
+      const id = setInterval(load, 10000)
+      return () => { cancelled = true; clearInterval(id) }
+    }
+
+    return () => { cancelled = true }
+  }, [date, isToday, router])
 
   const fetchData = useCallback(async () => {
     try {
@@ -52,14 +74,6 @@ export default function DashboardPage() {
       setData(d)
     } catch { }
   }, [date, router])
-
-  useEffect(() => {
-    fetchData()
-    if (isToday) {
-      intervalRef.current = setInterval(fetchData, 10000)
-    }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
-  }, [fetchData, isToday])
 
   function goToday() {
     setDate(todayStr())
@@ -85,6 +99,10 @@ export default function DashboardPage() {
   }
 
   const info = data ? formatDateInfo(data.tanggal) : null
+
+  const filteredOrders = data?.pesanan.filter(p =>
+    p.nama_pemesan.toLowerCase().includes(search.toLowerCase())
+  ) ?? []
 
   return (
     <body className="dashboard-page">
@@ -165,6 +183,15 @@ export default function DashboardPage() {
           )}
         </div>
 
+        <div className="search-bar">
+          <span className="search-icon">🔍</span>
+          <input type="text" className="search-input" placeholder="Cari nama pemesan..." autoComplete="off"
+            value={search} onChange={e => setSearch(e.target.value)} />
+          {search && (
+            <button className="search-clear" onClick={() => setSearch('')}>✕</button>
+          )}
+        </div>
+
         <div className="table-wrapper">
           <table>
             <thead>
@@ -180,13 +207,13 @@ export default function DashboardPage() {
             <tbody id="orders-table-body">
               {!data ? (
                 <tr><td colSpan={6} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>Memuat data...</td></tr>
-              ) : data.pesanan.length === 0 ? (
+              ) : filteredOrders.length === 0 ? (
                 <tr><td colSpan={6} className="empty-state">
                   <div className="empty-icon">📭</div>
-                  <div>Belum ada pesanan di tanggal ini</div>
+                  <div>{search ? 'Tidak ada hasil untuk "' + search + '"' : 'Belum ada pesanan di tanggal ini'}</div>
                 </td></tr>
               ) : (
-                data.pesanan.map((p, i) => (
+                filteredOrders.map((p, i) => (
                   <tr key={p.id} className="table-row-animate" style={{ animationDelay: i * 0.05 + 's' }}>
                     <td>{i + 1}</td>
                     <td><strong>{p.nama_pemesan}</strong></td>
